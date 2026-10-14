@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+
+# Keep the example environment template
+!.env.example
+
+# Node.js
+frontend/node_modules/
+frontend/dist/
+
+# Environment and editor files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
