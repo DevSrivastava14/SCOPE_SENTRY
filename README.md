@@ -1,7 +1,7 @@
 ## Development Progress & Daily Roadmap
 
-**Current status:** Day 1 completed  
-**Project phase:** Foundation established; core AI functionality not yet implemented.
+**Current status:** Day 2 completed
+**Project phase:** Backend scope-analysis workflow implemented and verified; frontend analysis experience is next.
 
 This section is the source of truth for daily development progress. Update it at the end of each development day. Mark a task complete only after implementation and verification.
 
@@ -30,18 +30,30 @@ This section is the source of truth for daily development progress. Update it at
 
 **Goal:** Build the first working scope-creep analysis workflow.
 
-- [ ] Define the request and response formats for scope analysis.
-- [ ] Create a FastAPI endpoint for submitting the original agreement and new client request.
-- [ ] Configure the NVIDIA API on the backend using the selected Nemotron model.
-- [ ] Store the NVIDIA API key in a backend `.env` file.
-- [ ] Add `.env` to `.gitignore` and provide a sanitized `.env.example`.
-- [ ] Implement the initial AI analysis service.
-- [ ] Return structured analysis results instead of unstructured text where practical.
-- [ ] Validate empty or invalid inputs.
-- [ ] Handle API failures, timeouts, and malformed AI responses.
-- [ ] Test the endpoint using FastAPI `/docs`.
+- [x] Define the request and response formats for scope analysis.
+- [x] Create a FastAPI endpoint for submitting the original agreement and new client request.
+- [x] Configure the Groq API on the backend using the `openai/gpt-oss-120b` model.
+- [x] Store the Groq API key in a backend `.env` file.
+- [x] Add `.env` to `.gitignore` and provide a sanitized `.env.example`.
+- [x] Implement the initial AI analysis service.
+- [x] Return structured analysis results instead of unstructured text where practical.
+- [x] Validate empty or invalid inputs.
+- [x] Handle API failures, timeouts, and malformed AI responses.
+- [x] Test the endpoint using FastAPI `/docs`.
 
 **Completion criteria:** A valid request can be submitted to the backend and produces a structured analysis response, with errors handled appropriately.
+
+**Day 2 outcome:** The backend now exposes `POST /analyze` with the existing Pydantic
+request and response schemas. It uses Groq's OpenAI-compatible API, validates
+supporting evidence against the supplied agreement and client request, and returns
+safe errors for missing configuration, provider failures, timeouts, malformed output,
+and invalid input. A live Groq inference request succeeded before this roadmap update.
+
+**Day 2 verification:** No automated backend test suite exists yet. Focused mocked
+checks passed for request validation, response parsing, unsupported evidence quotes,
+missing `GROQ_API_KEY`, malformed model output, provider errors, timeout handling,
+the existing root and health routes, and `/docs`. Python compilation and
+`git diff --check` also passed.
 
 ### Day 3 — Frontend Analysis Experience
 
@@ -107,7 +119,7 @@ This day is reserved for quality improvements. It does not require adding extra 
 
 - **Frontend:** React + Vite
 - **Backend:** Python + FastAPI
-- **AI provider:** NVIDIA API with the selected Nemotron model
+- **AI provider:** Groq API using the OpenAI-compatible client and `openai/gpt-oss-120b`
 - **Version control:** Git and GitHub
 
 ## Development Rules for GitHub Copilot
@@ -117,7 +129,7 @@ This day is reserved for quality improvements. It does not require adding extra 
 3. Make small, focused changes instead of attempting the entire day's work at once.
 4. Inspect relevant files before editing them; preserve existing working functionality.
 5. Do not recreate the frontend or backend if they already exist.
-6. Keep the NVIDIA API key on the backend. Never expose secrets in frontend code or commit them to Git.
+6. Keep the Groq API key on the backend. Never expose secrets in frontend code or commit them to Git.
 7. Do not add a database, authentication, payments, or unrelated features unless explicitly requested.
 8. Verify changes using appropriate tests or manual checks.
 9. Report which files changed, what was implemented, and which checks actually passed.
@@ -127,7 +139,20 @@ This day is reserved for quality improvements. It does not require adding extra 
 
 ## Immediate Next Steps
 
-1. Create the remote GitHub repository.
-2. Push the local project and README updates.
-3. Start Day 2 with the AI analysis request/response design.
-4. Implement and verify the first backend analysis endpoint.
+1. Connect the React frontend to `POST /analyze`.
+2. Submit the original agreement and new client request from the frontend.
+3. Display structured analysis results and evidence.
+4. Handle frontend loading, success, and error states.
+
+### Backend provider configuration
+
+Create `backend/.env` locally and set:
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=openai/gpt-oss-120b
+```
+
+The backend uses Groq's OpenAI-compatible endpoint at
+`https://api.groq.com/openai/v1`. Keep `backend/.env` local and never commit the
+API key.
