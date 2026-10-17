@@ -1,7 +1,7 @@
 ## Development Progress & Daily Roadmap
 
-**Current status:** Day 2 completed
-**Project phase:** Backend scope-analysis workflow implemented and verified; frontend analysis experience is next.
+**Current status:** Day 3 completed
+**Project phase:** Frontend-to-AI scope-analysis workflow implemented and verified; change ledger and client reply features are next.
 
 This section is the source of truth for daily development progress. Update it at the end of each development day. Mark a task complete only after implementation and verification.
 
@@ -59,16 +59,32 @@ the existing root and health routes, and `/docs`. Python compilation and
 
 **Goal:** Allow a freelancer to use the core analysis workflow through the React interface.
 
-- [ ] Replace the temporary connectivity page with the first ScopeSentry interface.
-- [ ] Add an input area for the original agreement or scope of work.
-- [ ] Add an input area for the new client request.
-- [ ] Connect the form to the FastAPI analysis endpoint.
-- [ ] Show loading, success, and error states.
-- [ ] Display identified changes and their supporting text evidence.
-- [ ] Distinguish potentially out-of-scope changes from in-scope or unclear changes.
-- [ ] Make the results readable and easy to understand.
+- [x] Replace the temporary connectivity page with the first ScopeSentry interface.
+- [x] Add an input area for the original agreement or scope of work.
+- [x] Add an input area for the new client request.
+- [x] Add an optional hourly-rate input.
+- [x] Connect the form to the FastAPI analysis endpoint.
+- [x] Show loading, success, and error states.
+- [x] Display identified changes and their supporting text evidence.
+- [x] Distinguish potentially out-of-scope changes from in-scope or unclear changes.
+- [x] Make the results readable and easy to understand.
 
 **Completion criteria:** A user can submit both texts in the browser and view the backend's analysis results.
+
+**Day 3 outcome:** The temporary health-check page was replaced with the ScopeSentry
+analysis interface. Freelancers can submit the original agreement and new client
+request through controlled inputs, optionally provide an hourly rate, and receive
+the structured analysis from the existing FastAPI `POST /analyze` endpoint. The
+interface displays the AI summary, classified findings, supporting evidence,
+uncertainty, and missing information without fabricating results or evidence.
+
+**Day 3 verification:** The complete live frontend-to-backend-to-Groq analysis
+workflow was successfully tested with a realistic example, and the returned
+analysis appeared in the browser. The frontend CSS loading issue was fixed and
+the intended styling was confirmed in the browser. Frontend lint and production
+build checks passed, and `git diff --check` passed. Mobile responsiveness,
+hourly-rate cost calculations, and additional test scenarios were not verified
+as part of Day 3.
 
 ### Day 4 — Change Ledger & Client Reply
 
@@ -139,10 +155,10 @@ This day is reserved for quality improvements. It does not require adding extra 
 
 ## Immediate Next Steps
 
-1. Connect the React frontend to `POST /analyze`.
-2. Submit the original agreement and new client request from the frontend.
-3. Display structured analysis results and evidence.
-4. Handle frontend loading, success, and error states.
+1. Present the identified changes in a clear change ledger.
+2. Show agreement and client-request evidence in the change ledger.
+3. Explain supported impacts on deliverables, effort, timeline, or cost.
+4. Generate a professional, editable response the freelancer can send to the client.
 
 ### Backend provider configuration
 
