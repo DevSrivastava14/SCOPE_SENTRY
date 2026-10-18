@@ -1,7 +1,10 @@
 import { useState } from "react";
 import "./App.css";
 
-const API_URL = "http://127.0.0.1:8000/analyze";
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"
+).replace(/\/$/, "");
+const API_URL = `${API_BASE_URL}/analyze`;
 
 const initialForm = {
   originalAgreement: "",
@@ -17,11 +20,26 @@ function classificationLabel(classification) {
   }[classification] || "Unclear";
 }
 
+function hasUsableEstimate(estimate) {
+  return estimate && (
+    Number.isFinite(estimate.minimum) ||
+    Number.isFinite(estimate.maximum)
+  );
+}
+
+function formatEstimate(estimate) {
+  const minimum = Number.isFinite(estimate.minimum) ? estimate.minimum : "—";
+  const maximum = Number.isFinite(estimate.maximum) ? estimate.maximum : "—";
+  return minimum === maximum ? `${minimum} hours` : `${minimum}–${maximum} hours`;
+}
+
 function App() {
   const [form, setForm] = useState(initialForm);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
   const [analysis, setAnalysis] = useState(null);
+  const [editableReply, setEditableReply] = useState("");
+  const [copyStatus, setCopyStatus] = useState("idle");
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -56,6 +74,8 @@ function App() {
     setStatus("loading");
     setError("");
     setAnalysis(null);
+    setEditableReply("");
+    setCopyStatus("idle");
 
     try {
       const response = await fetch(API_URL, {
@@ -74,6 +94,7 @@ function App() {
       }
 
       setAnalysis(data);
+      setEditableReply(data.suggested_client_reply);
       setStatus("success");
     } catch (requestError) {
       setError(
@@ -87,6 +108,20 @@ function App() {
 
   const findings = analysis?.findings ?? [];
   const missingInformation = analysis?.missing_information ?? [];
+
+  const copyReply = async () => {
+    if (!editableReply.trim()) {
+      setCopyStatus("error");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(editableReply);
+      setCopyStatus("copied");
+    } catch {
+      setCopyStatus("error");
+    }
+  };
 
   return (
     <main className="app-shell">
@@ -192,52 +227,65 @@ function App() {
           </div>
 
           {findings.length > 0 ? (
-            <div className="findings-list">
+            <div className="change-ledger">
+              <div className="ledger-heading">
+                <span className="detail-label">Change ledger</span>
+                <span className="ledger-note">Review each change before responding</span>
+              </div>
+              <div className="findings-list">
               {findings.map((finding, index) => (
                 <article className="finding-card" key={`${finding.change_description}-${index}`}>
-                  <div className="finding-topline">
-                    <span className={`classification ${finding.classification}`}>
-                      <span className="classification-dot" aria-hidden="true" />
-                      {classificationLabel(finding.classification)}
-                    </span>
-                    <span className="finding-number">Change {String(index + 1).padStart(2, "0")}</span>
+                  <div className="finding-header">
+                    <div className="finding-topline">
+                      <span className="finding-number">Change {String(index + 1).padStart(2, "0")}</span>
+                      <span className={`classification ${finding.classification}`}>
+                        <span className="classification-dot" aria-hidden="true" />
+                        {classificationLabel(finding.classification)}
+                      </span>
+                    </div>
+                    <h3>{finding.change_description}</h3>
                   </div>
-                  <h3>{finding.change_description}</h3>
-                  <p className="finding-explanation">{finding.explanation}</p>
 
-                  <div className="evidence-block">
-                    <span className="detail-label">Supporting evidence</span>
+                  <div className="finding-details">
+                    <div className="finding-explanation-block">
+                      <span className="detail-label">Why this was flagged</span>
+                      <p className="finding-explanation">{finding.explanation}</p>
+                    </div>
+
+                    <div className="evidence-block">
+                      <span className="detail-label">Supporting evidence</span>
+                      <p className="evidence-note">Quoted from the supplied agreement or client request.</p>
+                    </div>
                     <div className="quotations">
                       {(finding.supporting_evidence ?? []).map((evidence, evidenceIndex) => (
                         <blockquote key={`${evidence}-${evidenceIndex}`}>{evidence}</blockquote>
                       ))}
                     </div>
+
+                    {finding.uncertainty && (
+                      <div className="uncertainty">
+                        <span className="detail-label">Uncertainty to review</span>
+                        <p>{finding.uncertainty}</p>
+                      </div>
+                    )}
+
+                    {hasUsableEstimate(finding.estimated_extra_hours) && (
+                      <div className="estimate">
+                        <span className="detail-label">Estimated extra effort</span>
+                        <p>{formatEstimate(finding.estimated_extra_hours)}</p>
+                        {(finding.estimated_extra_hours.assumptions ?? []).length > 0 && (
+                          <ul>
+                            {finding.estimated_extra_hours.assumptions.map((assumption, assumptionIndex) => (
+                              <li key={`${assumption}-${assumptionIndex}`}>{assumption}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
                   </div>
-
-                  {finding.uncertainty && (
-                    <div className="uncertainty">
-                      <span className="detail-label">Uncertainty</span>
-                      <p>{finding.uncertainty}</p>
-                    </div>
-                  )}
-
-                  {finding.estimated_extra_hours && (
-                    <div className="estimate">
-                      <span className="detail-label">Estimated extra effort</span>
-                      <p>
-                        {finding.estimated_extra_hours.minimum ?? "—"}–{finding.estimated_extra_hours.maximum ?? "—"} hours
-                      </p>
-                      {(finding.estimated_extra_hours.assumptions ?? []).length > 0 && (
-                        <ul>
-                          {finding.estimated_extra_hours.assumptions.map((assumption, assumptionIndex) => (
-                            <li key={`${assumption}-${assumptionIndex}`}>{assumption}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  )}
                 </article>
               ))}
+              </div>
             </div>
           ) : (
             <div className="empty-results">
@@ -254,6 +302,38 @@ function App() {
               </ul>
             </div>
           )}
+
+          <div className="client-reply">
+            <div className="reply-heading">
+              <div>
+                <span className="detail-label">Suggested client reply</span>
+                <p>Edit this grounded draft before sending it to the client.</p>
+              </div>
+              <button className="copy-button" type="button" onClick={copyReply}>
+                {copyStatus === "copied" ? "Copied" : "Copy reply"}
+              </button>
+            </div>
+            <textarea
+              className="reply-input"
+              value={editableReply}
+              onChange={(event) => {
+                setEditableReply(event.target.value);
+                setCopyStatus("idle");
+              }}
+              aria-label="Suggested client reply"
+              rows="9"
+            />
+            {copyStatus === "copied" && (
+              <p className="copy-feedback success-feedback" role="status">
+                Reply copied to your clipboard.
+              </p>
+            )}
+            {copyStatus === "error" && (
+              <p className="copy-feedback error-feedback" role="alert">
+                The reply could not be copied. Select the text and copy it manually.
+              </p>
+            )}
+          </div>
         </section>
       )}
     </main>

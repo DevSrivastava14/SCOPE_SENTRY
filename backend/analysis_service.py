@@ -4,7 +4,7 @@ import logging
 import os
 from pathlib import Path
 import time
-from typing import Any
+from typing import Any, NamedTuple
 
 from dotenv import load_dotenv
 from fastapi import HTTPException, status
@@ -24,6 +24,7 @@ Compare only the ORIGINAL AGREEMENT and NEW CLIENT REQUEST supplied by the user.
 Return exactly one valid JSON object and no Markdown or other text, using this shape:
 {
   "overall_summary": "string",
+  "suggested_client_reply": "Professional, editable reply to the client",
   "findings": [
     {
       "change_description": "string",
@@ -41,12 +42,53 @@ Return exactly one valid JSON object and no Markdown or other text, using this s
   "missing_information": ["string"]
 }
 
-Every supporting_evidence item must be copied exactly from the ORIGINAL AGREEMENT
-or NEW CLIENT REQUEST. Do not invent contract terms, facts, evidence, or estimates.
+Every supporting_evidence item must be copied character-for-character as a
+contiguous substring of either the ORIGINAL AGREEMENT or NEW CLIENT REQUEST.
+Preserve the source text's exact capitalization, punctuation, whitespace, and
+wording. Do not paraphrase, summarize, correct, normalize, or combine separate
+excerpts into one evidence item. If you cannot provide valid verbatim evidence
+for a finding, omit that finding instead of inventing or approximating a quote.
+Do not invent contract terms, facts, evidence, estimates, prices, deadlines, or
+promises.
 Use null for estimated_extra_hours when an estimate is not supported by the supplied
 texts. Use "unclear" when the supplied texts do not establish the classification.
 If information is missing, state that in missing_information and uncertainty.
+
+Write suggested_client_reply as a professional, polite, editable message the
+freelancer can send to the client. Acknowledge the requested changes using only
+the supplied texts. When appropriate, suggest clarifying scope and agreeing on
+any budget or timeline changes before proceeding, without naming a price,
+timeline, deadline, or promise that is not supplied. Use cautious language for
+unclear findings and do not present the analysis as a definitive legal conclusion.
+Do not include Markdown fences or commentary outside the reply.
 """
+
+
+class GroqResponse(NamedTuple):
+    content: str
+    finish_reason: str | None
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+
+
+def _usage_value(usage: Any, name: str) -> int | None:
+    if usage is None:
+        return None
+    value = usage.get(name) if isinstance(usage, dict) else getattr(usage, name, None)
+    return value if isinstance(value, int) else None
+
+
+def _response_metadata(response: Any, content: str) -> dict[str, Any]:
+    choice = response.choices[0]
+    usage = getattr(response, "usage", None)
+    return {
+        "finish_reason": getattr(choice, "finish_reason", None),
+        "response_characters": len(content),
+        "prompt_tokens": _usage_value(usage, "prompt_tokens"),
+        "completion_tokens": _usage_value(usage, "completion_tokens"),
+        "total_tokens": _usage_value(usage, "total_tokens"),
+    }
 
 
 def _build_user_prompt(request: ScopeAnalysisRequest) -> str:
@@ -58,15 +100,46 @@ def _build_user_prompt(request: ScopeAnalysisRequest) -> str:
     )
 
 
-def _parse_response(raw_content: str, request: ScopeAnalysisRequest) -> ScopeAnalysisResponse:
+def _parse_response(
+    raw_content: str,
+    request: ScopeAnalysisRequest,
+    provider_metadata: dict[str, Any] | None = None,
+) -> ScopeAnalysisResponse:
+    metadata = provider_metadata or {"response_characters": len(raw_content)}
     try:
         payload: Any = json.loads(raw_content)
-        response = ScopeAnalysisResponse.model_validate(payload)
-    except (json.JSONDecodeError, TypeError, ValidationError) as exc:
+    except json.JSONDecodeError:
+        logger.warning(
+            "Groq response JSON decoding failed; metadata=%s",
+            metadata,
+        )
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Groq returned malformed scope-analysis data.",
-        ) from exc
+        )
+    try:
+        response = ScopeAnalysisResponse.model_validate(payload)
+    except (TypeError, ValidationError) as exc:
+        validation_details = (
+            [
+                {
+                    "location": error.get("loc", ()),
+                    "type": error.get("type"),
+                }
+                for error in exc.errors()
+            ]
+            if isinstance(exc, ValidationError)
+            else [{"location": (), "type": "type_error"}]
+        )
+        logger.warning(
+            "Groq response schema validation failed; errors=%s metadata=%s",
+            validation_details,
+            metadata,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Groq returned malformed scope-analysis data.",
+        )
 
     supplied_text = (request.original_agreement, request.new_client_request)
     for finding in response.findings:
@@ -81,7 +154,7 @@ def _parse_response(raw_content: str, request: ScopeAnalysisRequest) -> ScopeAna
     return response
 
 
-def _call_groq(request: ScopeAnalysisRequest, api_key: str) -> str:
+def _call_groq(request: ScopeAnalysisRequest, api_key: str) -> GroqResponse:
     client = OpenAI(
         api_key=api_key,
         base_url=GROQ_BASE_URL,
@@ -100,7 +173,12 @@ def _call_groq(request: ScopeAnalysisRequest, api_key: str) -> str:
     content = response.choices[0].message.content
     if not content:
         raise ValueError("Groq returned an empty response.")
-    return content
+    metadata = _response_metadata(response, content)
+    return GroqResponse(content=content, **{
+        key: value
+        for key, value in metadata.items()
+        if key != "response_characters"
+    })
 
 
 async def analyze_scope(request: ScopeAnalysisRequest) -> ScopeAnalysisResponse:
@@ -114,7 +192,7 @@ async def analyze_scope(request: ScopeAnalysisRequest) -> ScopeAnalysisResponse:
 
     request_started = time.perf_counter()
     try:
-        raw_content = await asyncio.wait_for(
+        groq_response = await asyncio.wait_for(
             asyncio.to_thread(_call_groq, request, api_key),
             timeout=GROQ_TIMEOUT_SECONDS + 5,
         )
@@ -142,4 +220,15 @@ async def analyze_scope(request: ScopeAnalysisRequest) -> ScopeAnalysisResponse:
         "Groq analysis completed in %.2f seconds",
         time.perf_counter() - request_started,
     )
-    return _parse_response(raw_content, request)
+    provider_metadata = {
+        "finish_reason": groq_response.finish_reason,
+        "response_characters": len(groq_response.content),
+        "prompt_tokens": groq_response.prompt_tokens,
+        "completion_tokens": groq_response.completion_tokens,
+        "total_tokens": groq_response.total_tokens,
+    }
+    return _parse_response(
+        groq_response.content,
+        request,
+        provider_metadata=provider_metadata,
+    )

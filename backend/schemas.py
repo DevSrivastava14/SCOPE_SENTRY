@@ -105,6 +105,10 @@ class ScopeAnalysisResponse(BaseModel):
         ...,
         description="Overall summary of the scope analysis.",
     )
+    suggested_client_reply: str = Field(
+        ...,
+        description="Professional, editable reply grounded in the supplied texts and findings.",
+    )
     findings: list[ScopeFinding] = Field(
         default_factory=list,
         description="Structured changes identified in the supplied texts.",
@@ -115,5 +119,8 @@ class ScopeAnalysisResponse(BaseModel):
     )
 
     _validate_overall_summary = field_validator("overall_summary")(
+        _require_non_blank
+    )
+    _validate_suggested_client_reply = field_validator("suggested_client_reply")(
         _require_non_blank
     )

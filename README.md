@@ -1,174 +1,306 @@
-## Development Progress & Daily Roadmap
+# ScopeSentry
 
-**Current status:** Day 3 completed
-**Project phase:** Frontend-to-AI scope-analysis workflow implemented and verified; change ledger and client reply features are next.
+## Protect your time. Clarify the scope. Get paid for extra work.
 
-This section is the source of truth for daily development progress. Update it at the end of each development day. Mark a task complete only after implementation and verification.
+ScopeSentry helps freelancers review potential scope creep before agreeing to
+new client work. It compares an original agreement or scope of work with a new
+client request and presents an evidence-grounded analysis that is easier to
+review and discuss.
 
-### Day 1 — Project Setup & Foundation
+## Features
 
-**Status: COMPLETED**
+- Compare an original agreement with a new client request.
+- Classify individual findings as **in scope**, **potentially out of scope**, or
+  **needs clarification**.
+- Show the change description, explanation, uncertainty, and exact supporting
+  evidence for each finding.
+- Validate model-provided evidence as a contiguous, character-for-character
+  substring of the supplied agreement or request.
+- Show missing information that should be clarified.
+- Display extra-hour estimates only when usable values are returned, together
+  with their assumptions.
+- Generate a grounded, editable suggested client reply.
+- Copy the edited reply to the clipboard, with a manual-copy fallback message
+  when clipboard access fails.
+- Provide privacy-safe diagnostics for malformed provider responses without
+  logging user text, model output, replies, or API keys.
 
-- [x] Created the ScopeSentry project directory.
-- [x] Set up the Python virtual environment.
-- [x] Created the FastAPI backend.
-- [x] Added `GET /` as the root endpoint.
-- [x] Added `GET /health` as the health-check endpoint.
-- [x] Configured CORS for the local React frontend at `http://localhost:5173`.
-- [x] Created the React + Vite frontend.
-- [x] Started and verified the frontend development server.
-- [x] Connected React to FastAPI using a health-check request.
-- [x] Verified that the backend returns the expected health response.
-- [x] Initialized Git and created the first local commit.
-- [x] Established the initial project structure.
+## How it works
 
-**Day 1 outcome:** The frontend and backend run locally and communicate successfully. The application currently contains only a basic connectivity test; scope analysis and the final product interface have not been implemented.
+1. Paste the original agreement or scope of work.
+2. Paste the client's new or changed request.
+3. Optionally enter an hourly rate for future-compatible request handling.
+4. Submit the analysis.
+5. Review the summary, change ledger, exact evidence, uncertainty, missing
+   information, and any supported effort estimate.
+6. Edit the suggested reply before sending it yourself.
 
-**Remaining repository setup:** Create the remote GitHub repository and push the local commits.
+ScopeSentry does not send messages to clients or provide email integration.
 
-### Day 2 — AI Analysis Backend
+## Screenshots and demo
 
-**Goal:** Build the first working scope-creep analysis workflow.
+This repository does not currently include a verified screenshot, hosted demo,
+or deployed application URL. The application can be run locally using the
+instructions below.
 
-- [x] Define the request and response formats for scope analysis.
-- [x] Create a FastAPI endpoint for submitting the original agreement and new client request.
-- [x] Configure the Groq API on the backend using the `openai/gpt-oss-120b` model.
-- [x] Store the Groq API key in a backend `.env` file.
-- [x] Add `.env` to `.gitignore` and provide a sanitized `.env.example`.
-- [x] Implement the initial AI analysis service.
-- [x] Return structured analysis results instead of unstructured text where practical.
-- [x] Validate empty or invalid inputs.
-- [x] Handle API failures, timeouts, and malformed AI responses.
-- [x] Test the endpoint using FastAPI `/docs`.
+## Technology and architecture
 
-**Completion criteria:** A valid request can be submitted to the backend and produces a structured analysis response, with errors handled appropriately.
+- **Frontend:** React 19 with Vite
+- **Backend:** Python with FastAPI
+- **Validation:** Pydantic 2 request and response models
+- **AI provider:** Groq through its OpenAI-compatible API
+- **Model:** `openai/gpt-oss-120b` by default
+- **Frontend/backend flow:** The React app sends JSON to FastAPI `POST /analyze`.
+  The backend calls Groq, validates the structured response and evidence, then
+  returns the response to the browser.
 
-**Day 2 outcome:** The backend now exposes `POST /analyze` with the existing Pydantic
-request and response schemas. It uses Groq's OpenAI-compatible API, validates
-supporting evidence against the supplied agreement and client request, and returns
-safe errors for missing configuration, provider failures, timeouts, malformed output,
-and invalid input. A live Groq inference request succeeded before this roadmap update.
+Relevant directories:
 
-**Day 2 verification:** No automated backend test suite exists yet. Focused mocked
-checks passed for request validation, response parsing, unsupported evidence quotes,
-missing `GROQ_API_KEY`, malformed model output, provider errors, timeout handling,
-the existing root and health routes, and `/docs`. Python compilation and
-`git diff --check` also passed.
+```text
+backend/
+  analysis_service.py
+  main.py
+  schemas.py
+  requirements.txt
+  tests/
+frontend/
+  src/
+  package.json
+  .env.example
+```
 
-### Day 3 — Frontend Analysis Experience
+## Prerequisites
 
-**Goal:** Allow a freelancer to use the core analysis workflow through the React interface.
+- Windows, macOS, or Linux
+- Python 3.13 recommended for the verified local environment
+- Node.js and npm
+- A Groq API key for live analysis requests
 
-- [x] Replace the temporary connectivity page with the first ScopeSentry interface.
-- [x] Add an input area for the original agreement or scope of work.
-- [x] Add an input area for the new client request.
-- [x] Add an optional hourly-rate input.
-- [x] Connect the form to the FastAPI analysis endpoint.
-- [x] Show loading, success, and error states.
-- [x] Display identified changes and their supporting text evidence.
-- [x] Distinguish potentially out-of-scope changes from in-scope or unclear changes.
-- [x] Make the results readable and easy to understand.
+## Installation
 
-**Completion criteria:** A user can submit both texts in the browser and view the backend's analysis results.
+### Backend
 
-**Day 3 outcome:** The temporary health-check page was replaced with the ScopeSentry
-analysis interface. Freelancers can submit the original agreement and new client
-request through controlled inputs, optionally provide an hourly rate, and receive
-the structured analysis from the existing FastAPI `POST /analyze` endpoint. The
-interface displays the AI summary, classified findings, supporting evidence,
-uncertainty, and missing information without fabricating results or evidence.
+From the repository root on Windows:
 
-**Day 3 verification:** The complete live frontend-to-backend-to-Groq analysis
-workflow was successfully tested with a realistic example, and the returned
-analysis appeared in the browser. The frontend CSS loading issue was fixed and
-the intended styling was confirmed in the browser. Frontend lint and production
-build checks passed, and `git diff --check` passed. Mobile responsiveness,
-hourly-rate cost calculations, and additional test scenarios were not verified
-as part of Day 3.
+```powershell
+cd backend
+py -3.13 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
 
-### Day 4 — Change Ledger & Client Reply
+On macOS or Linux:
 
-**Goal:** Make the analysis useful for real freelancer-client conversations.
+```bash
+cd backend
+python3 -m venv .venv
+./.venv/bin/python -m pip install -r requirements.txt
+```
 
-- [ ] Present the identified changes in a clear change ledger.
-- [ ] Show evidence from the supplied agreement and client request.
-- [ ] Explain possible impacts on deliverables, effort, timeline, or cost when supported by the evidence.
-- [ ] Avoid inventing contractual terms, prices, or estimates.
-- [ ] Generate a professional, editable response the freelancer can send to the client.
-- [ ] Handle ambiguous requests without presenting uncertain conclusions as facts.
-- [ ] Test several realistic client-request scenarios.
+### Environment variables
 
-**Completion criteria:** A freelancer can understand the flagged changes, review the supporting evidence, and edit a suggested client response.
-
-### Day 5 — UI Polish, Testing & Documentation
-
-**Goal:** Turn the working MVP into a presentable project.
-
-- [ ] Improve the visual design and overall user experience.
-- [ ] Ensure the interface works on common desktop and mobile screen sizes.
-- [ ] Add appropriate empty, loading, and error states.
-- [ ] Run frontend and backend checks.
-- [ ] Verify the complete frontend-to-AI workflow.
-- [ ] Review environment configuration and secret handling.
-- [ ] Finalize the README, setup instructions, and API documentation.
-- [ ] Add screenshots or a demo if available.
-- [ ] Review deployment options and deploy if the application is stable.
-- [ ] Review Hacktoberfest participation requirements before describing the project as eligible.
-
-**Completion criteria:** The MVP works end to end, has been tested, and can be demonstrated with clear setup instructions.
-
-### Day 6 — Buffer & Final Improvements (If Needed)
-
-**Goal:** Address issues discovered during testing rather than adding unnecessary features.
-
-- [ ] Fix confirmed bugs.
-- [ ] Improve weak or confusing analysis results.
-- [ ] Review performance, reliability, and error handling.
-- [ ] Resolve remaining deployment or configuration issues.
-- [ ] Update this roadmap to reflect actual progress.
-
-This day is reserved for quality improvements. It does not require adding extra features if the MVP is already stable.
-
----
-
-## Technical Stack
-
-- **Frontend:** React + Vite
-- **Backend:** Python + FastAPI
-- **AI provider:** Groq API using the OpenAI-compatible client and `openai/gpt-oss-120b`
-- **Version control:** Git and GitHub
-
-## Development Rules for GitHub Copilot
-
-1. Read this progress tracker before starting a new task.
-2. Work only on the current day's unfinished tasks unless explicitly instructed otherwise.
-3. Make small, focused changes instead of attempting the entire day's work at once.
-4. Inspect relevant files before editing them; preserve existing working functionality.
-5. Do not recreate the frontend or backend if they already exist.
-6. Keep the Groq API key on the backend. Never expose secrets in frontend code or commit them to Git.
-7. Do not add a database, authentication, payments, or unrelated features unless explicitly requested.
-8. Verify changes using appropriate tests or manual checks.
-9. Report which files changed, what was implemented, and which checks actually passed.
-10. Do not mark tasks complete based solely on writing code. Confirm that the functionality works.
-11. At the end of each day, update the checkboxes and daily status in this README.
-12. If a task is blocked, explain the blocker and propose the smallest next step instead of repeatedly retrying expensive operations.
-
-## Immediate Next Steps
-
-1. Present the identified changes in a clear change ledger.
-2. Show agreement and client-request evidence in the change ledger.
-3. Explain supported impacts on deliverables, effort, timeline, or cost.
-4. Generate a professional, editable response the freelancer can send to the client.
-
-### Backend provider configuration
-
-Create `backend/.env` locally and set:
+Copy `backend/.env.example` to `backend/.env` and set your local provider
+credential:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=openai/gpt-oss-120b
 ```
 
-The backend uses Groq's OpenAI-compatible endpoint at
-`https://api.groq.com/openai/v1`. Keep `backend/.env` local and never commit the
-API key.
+Never commit `backend/.env` or place the API key in frontend code.
+
+The frontend API base defaults to `http://localhost:8000`. To override it,
+copy `frontend/.env.example` to `frontend/.env` and set:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+The backend CORS configuration explicitly supports the local frontend origin
+`http://localhost:5173`.
+
+## Running locally
+
+Use two terminals.
+
+### Terminal 1: backend
+
+Windows:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m uvicorn main:app --reload
+```
+
+macOS or Linux:
+
+```bash
+cd backend
+./.venv/bin/python -m uvicorn main:app --reload
+```
+
+The API runs at `http://localhost:8000`.
+
+### Terminal 2: frontend
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Open the Vite URL shown in the terminal, normally
+`http://localhost:5173`.
+
+## API overview
+
+### `GET /`
+
+Returns basic API information:
+
+```json
+{
+  "message": "Welcome to ScopeSentry API",
+  "docs": "/docs"
+}
+```
+
+### `GET /health`
+
+Returns the service health response:
+
+```json
+{
+  "status": "ok",
+  "application": "ScopeSentry"
+}
+```
+
+### `POST /analyze`
+
+Request:
+
+```json
+{
+  "original_agreement": "The project includes a five-page website.",
+  "new_client_request": "Please add a customer dashboard.",
+  "hourly_rate": 75
+}
+```
+
+`hourly_rate` is optional and must be zero or greater. The two text fields must
+not be blank.
+
+The response contains `overall_summary`, `suggested_client_reply`,
+`missing_information`, and a `findings` array. Each finding contains
+`change_description`, `classification`, `supporting_evidence`, `explanation`,
+`uncertainty`, and an optional `estimated_extra_hours` object:
+
+```json
+{
+  "overall_summary": "The request introduces a dashboard that is not described in the supplied scope.",
+  "suggested_client_reply": "Thanks for the request. Let us confirm the updated scope before proceeding.",
+  "findings": [
+    {
+      "change_description": "Add a customer dashboard",
+      "classification": "out_of_scope",
+      "supporting_evidence": ["Please add a customer dashboard."],
+      "explanation": "The request describes a deliverable not included in the supplied agreement excerpt.",
+      "uncertainty": "The agreement excerpt may not contain every project detail.",
+      "estimated_extra_hours": null
+    }
+  ],
+  "missing_information": []
+}
+```
+
+The evidence in this example is illustrative request data; actual evidence must
+be copied exactly from the submitted text. Interactive API documentation is
+available at `http://localhost:8000/docs` while the backend is running.
+
+## Tests and quality checks
+
+Run the backend regression suite from `backend`:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests -q
+```
+
+Run frontend checks from `frontend`:
+
+```powershell
+npm run lint
+npm run build
+```
+
+Compile the relevant backend and test files:
+
+```powershell
+.\.venv\Scripts\python.exe -m py_compile analysis_service.py schemas.py main.py tests\test_backend.py
+```
+
+Check the Git diff for whitespace errors from the repository root:
+
+```powershell
+git diff --check
+```
+
+The verified local regression suite contains 31 passing tests. It uses mocked
+provider behavior and does not require live Groq requests.
+
+## Limitations and responsible use
+
+- Scope classifications and effort estimates are analysis aids, not definitive
+  contractual conclusions.
+- Estimates are approximate and may be absent when the supplied text does not
+  support them.
+- Review the original agreement, client request, evidence, uncertainty, and
+  missing information before making a business decision.
+- ScopeSentry does not provide legal advice. Consult a qualified professional
+  for legal or contractual questions.
+- The model can still be wrong or incomplete. Strict evidence validation helps
+  prevent unsupported quotations but does not guarantee correct interpretation.
+- No deployment or production hosting configuration is included in this
+  repository.
+
+## Contributing
+
+Small, focused contributions are welcome:
+
+1. Open an issue describing the problem or proposed improvement.
+2. Keep changes scoped to the relevant frontend, backend, tests, or
+   documentation.
+3. Do not add secrets, credentials, generated build output, or local
+   environments.
+4. Add or update deterministic tests for behavior changes.
+5. Run the backend tests, frontend lint/build, Python compilation, and
+   `git diff --check` before opening a pull request.
+6. Explain user-visible behavior changes and any limitations in the pull
+   request description.
+
+## Security
+
+Keep `GROQ_API_KEY` only in the ignored `backend/.env` file. Use the sanitized
+`.env.example` files for setup documentation. Do not include API keys, client
+agreements, client requests, raw model output, or other sensitive data in
+issues, logs, commits, or pull requests.
+
+For a suspected vulnerability, avoid posting sensitive details publicly. Open
+a private security report through the repository's available GitHub security
+contact process, or contact the maintainer directly if private reporting is
+not enabled.
+
+## Hacktoberfest and DEV challenge context
+
+ScopeSentry was developed as an open-source project for a DEV/Hacktoberfest
+challenge context. The repository demonstrates an evidence-first workflow for
+reviewing freelance scope changes with a React interface, FastAPI service,
+structured validation, and mocked regression tests. Eligibility and submission
+requirements should be confirmed against the current DEV/Hacktoberfest rules
+before submission.
+
+## Acknowledgements
+
+- React and Vite for the frontend tooling.
+- FastAPI and Pydantic for the API and validation layer.
+- Groq for the OpenAI-compatible model API.
+- The OpenAI Python client for the provider integration.
