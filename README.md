@@ -1,86 +1,212 @@
-# ScopeSentry
+# 🛡️ ScopeSentry
 
-## Protect your time. Clarify the scope. Get paid for extra work.
+### Protect your time. Clarify the scope. Get paid for extra work.
 
-ScopeSentry helps freelancers review potential scope creep before agreeing to
-new client work. It compares an original agreement or scope of work with a new
-client request and presents an evidence-grounded analysis that is easier to
-review and discuss.
+**ScopeSentry is an AI-powered scope analysis tool that helps freelancers identify scope creep before agreeing to additional client work.**
 
-## Features
+It compares an original agreement or statement of work against a new client request, identifies potential changes in project scope, provides exact supporting evidence, highlights missing information, and generates an editable response to help freelancers communicate professionally.
 
-- Compare an original agreement with a new client request.
-- Classify individual findings as **in scope**, **potentially out of scope**, or
-  **needs clarification**.
-- Show the change description, explanation, uncertainty, and exact supporting
-  evidence for each finding.
-- Validate model-provided evidence as a contiguous, character-for-character
-  substring of the supplied agreement or request.
-- Show missing information that should be clarified.
-- Display extra-hour estimates only when usable values are returned, together
-  with their assumptions.
-- Generate a grounded, editable suggested client reply.
-- Copy the edited reply to the clipboard, with a manual-copy fallback message
-  when clipboard access fails.
-- Provide privacy-safe diagnostics for malformed provider responses without
-  logging user text, model output, replies, or API keys.
+Instead of relying on vague AI summaries, ScopeSentry emphasizes **evidence-grounded analysis, structured findings, and transparent uncertainty.**
 
-## How it works
+---
 
-1. Paste the original agreement or scope of work.
-2. Paste the client's new or changed request.
-3. Optionally enter an hourly rate for future-compatible request handling.
-4. Submit the analysis.
-5. Review the summary, change ledger, exact evidence, uncertainty, missing
-   information, and any supported effort estimate.
-6. Edit the suggested reply before sending it yourself.
+## ✨ Why ScopeSentry?
 
-ScopeSentry does not send messages to clients or provide email integration.
+Scope creep is one of the most common challenges freelancers face.
 
-## Screenshots and demo
+A project begins with an agreed set of deliverables. Gradually, clients introduce additional requirements, features, revisions, and responsibilities that were never explicitly included in the original agreement.
 
-This repository does not currently include a verified screenshot, hosted demo,
-or deployed application URL. The application can be run locally using the
-instructions below.
+These changes can result in:
+- Unpaid additional work.
+- Unclear project expectations.
+- Unexpected deadlines.
+- Disagreements between freelancers and clients.
+- Lost time and reduced profitability.
 
-## Technology and architecture
+Freelancers need a way to distinguish between what was originally agreed upon and what is being requested now.
 
-- **Frontend:** React 19 with Vite
-- **Backend:** Python with FastAPI
-- **Validation:** Pydantic 2 request and response models
-- **AI provider:** Groq through its OpenAI-compatible API
-- **Model:** `openai/gpt-oss-120b` by default
-- **Frontend/backend flow:** The React app sends JSON to FastAPI `POST /analyze`.
-  The backend calls Groq, validates the structured response and evidence, then
-  returns the response to the browser.
+**ScopeSentry brings clarity to that process.**
 
-Relevant directories:
+## 🚀 Features
+
+| Feature | Description |
+|---|---|
+| 📄 Agreement Analysis | Compare an original agreement or scope of work with a new client request. |
+| 🔍 Scope Classification | Classify findings as `in_scope`, `out_of_scope`, or `needs_clarification`. |
+| 📌 Evidence-Grounded Findings | Display exact supporting excerpts from the supplied agreement and request. |
+| 🧠 AI Explanations | Explain why a particular change may affect the original scope. |
+| ⚖️ Uncertainty Assessment | Make uncertainty visible instead of presenting AI conclusions as absolute facts. |
+| ❓ Missing Information | Identify details that should be clarified before accepting additional work. |
+| ⏱️ Effort Estimation | Display estimated additional hours when usable estimates and assumptions are available. |
+| ✉️ Suggested Client Reply | Generate a context-aware, editable response for communicating scope changes. |
+| 📋 Copy to Clipboard | Copy the edited client response with a manual-copy fallback. |
+| 🔒 Privacy-Safe Diagnostics | Avoid logging agreement text, client requests, model output, replies, or API credentials in diagnostic output. |
+| 🧪 Regression Testing | Validate backend behavior using deterministic tests and mocked AI provider responses. |
+
+## ⚙️ How It Works
+
+ScopeSentry follows a straightforward workflow:
+
+1. **Provide the original agreement:** Paste the original contract excerpt, project requirements, or statement of work.
+2. **Enter the new request:** Provide the client's additional or modified requirements.
+3. **Add an hourly rate (optional):** Supply a rate for future-compatible effort estimation.
+4. **Analyze the changes:** The backend sends the supplied information to the configured AI provider.
+5. **Review the findings:** Examine classifications, explanations, supporting evidence, uncertainty, and missing information.
+6. **Review the effort estimate:** Inspect additional-hour estimates and their assumptions when available.
+7. **Prepare your response:** Edit the AI-generated client reply and copy it when ready.
+
+### Example
+
+**Original agreement:**
+> The project includes a five-page website.
+
+**New client request:**
+> Please add a customer dashboard.
+
+**ScopeSentry identifies:**
+
+| Field | Analysis |
+|---|---|
+| Change | Add a customer dashboard |
+| Classification | `out_of_scope` |
+| Explanation | The request introduces a deliverable not described in the supplied agreement excerpt. |
+| Supporting evidence | "Please add a customer dashboard." |
+| Uncertainty | The agreement excerpt may not contain every project detail. |
+
+The result is not just an AI-generated opinion. It is a structured finding that can be reviewed against the actual supplied text.
+
+*The example is illustrative; real classifications depend on the submitted documents and their context.*
+
+## 🏗️ Architecture
+
+ScopeSentry uses a React frontend, a FastAPI backend, structured Pydantic validation, and Groq-hosted AI inference.
 
 ```text
-backend/
-  analysis_service.py
-  main.py
-  schemas.py
-  requirements.txt
-  tests/
-frontend/
-  src/
-  package.json
-  .env.example
+                 ┌─────────────────────────┐
+                 │       Freelancer        │
+                 │                         │
+                 │ Original Agreement      │
+                 │ New Client Request      │
+                 └────────────┬────────────┘
+                              │
+                              ▼
+                 ┌─────────────────────────┐
+                 │     React Frontend      │
+                 │       React 19          │
+                 │                         │
+                 │ Input & Results UI      │
+                 │ Editable Client Reply   │
+                 └────────────┬────────────┘
+                              │
+                         POST /analyze
+                              │
+                              ▼
+                 ┌─────────────────────────┐
+                 │      FastAPI Backend    │
+                 │                         │
+                 │ Request Validation      │
+                 │ Analysis Service        │
+                 │ Response Validation     │
+                 │ Evidence Verification   │
+                 └────────────┬────────────┘
+                              │
+                              ▼
+                 ┌─────────────────────────┐
+                 │      Groq API           │
+                 │                         │
+                 │ openai/gpt-oss-120b     │
+                 └────────────┬────────────┘
+                              │
+                       Structured Output
+                              │
+                              ▼
+                 ┌─────────────────────────┐
+                 │ Validated Findings      │
+                 │ Evidence & Explanations │
+                 │ Suggested Client Reply  │
+                 └─────────────────────────┘
 ```
 
-## Prerequisites
+### Evidence Validation
 
-- Windows, macOS, or Linux
-- Python 3.13 recommended for the verified local environment
-- Node.js and npm
-- A Groq API key for live analysis requests
+A key design decision in ScopeSentry is that AI-generated evidence must be verifiable.
 
-## Installation
+The backend validates model-provided supporting evidence against the submitted agreement and client request. Evidence must be a contiguous, character-for-character substring of the original supplied text.
 
-### Backend
+This helps prevent fabricated or paraphrased quotations from being presented as direct supporting evidence.
 
-From the repository root on Windows:
+Pydantic models also validate structured request and response data before it is returned to the frontend.
+
+## 🛠️ Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19 |
+| Frontend Tooling | Vite |
+| Backend | Python, FastAPI |
+| Data Validation | Pydantic 2 |
+| AI Provider | Groq |
+| AI Model | `openai/gpt-oss-120b` |
+| Provider Integration | OpenAI Python Client |
+| API Communication | HTTP / JSON |
+| Testing | Pytest |
+| Environment Management | Python Virtual Environment |
+
+### Why This Stack?
+
+- **React + Vite:** Provides a responsive frontend and fast development workflow.
+- **FastAPI:** Handles asynchronous API operations and connects the frontend with the analysis service.
+- **Pydantic:** Enforces structured input and output validation.
+- **Groq:** Provides access to hosted AI inference through an OpenAI-compatible API.
+- **Pytest:** Supports deterministic backend regression testing without depending on live AI responses.
+
+## 📂 Repository Structure
+
+```text
+ScopeSentry/
+│
+├── backend/
+│   ├── analysis_service.py
+│   ├── main.py
+│   ├── schemas.py
+│   ├── requirements.txt
+│   ├── .env.example
+│   └── tests/
+│
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   ├── .env.example
+│   └── ...
+│
+└── README.md
+```
+
+## 💻 Getting Started
+
+Follow these instructions to run ScopeSentry locally.
+
+### Prerequisites
+
+- Python 3.13 (recommended for the verified environment).
+- Node.js and npm.
+- A Groq API key.
+- Git.
+
+### 1. Clone the Repository
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd ScopeSentry
+```
+
+Replace the repository URL with your GitHub repository URL.
+
+### 2. Set Up the Backend
+
+Navigate to the backend directory:
+
+**Windows:**
 
 ```powershell
 cd backend
@@ -88,7 +214,7 @@ py -3.13 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-On macOS or Linux:
+**macOS / Linux:**
 
 ```bash
 cd backend
@@ -96,88 +222,96 @@ python3 -m venv .venv
 ./.venv/bin/python -m pip install -r requirements.txt
 ```
 
-### Environment variables
+### 3. Configure Environment Variables
 
-Copy `backend/.env.example` to `backend/.env` and set your local provider
-credential:
+Copy `backend/.env.example` to `backend/.env`.
+
+Configure your credentials:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=openai/gpt-oss-120b
 ```
 
-Never commit `backend/.env` or place the API key in frontend code.
+**Important:** Never commit your actual API key or expose it in frontend code.
 
-The frontend API base defaults to `http://localhost:8000`. To override it,
-copy `frontend/.env.example` to `frontend/.env` and set:
+### 4. Configure the Frontend
+
+Copy `frontend/.env.example` to `frontend/.env`.
+
+Set the backend URL:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
 ```
 
-The backend CORS configuration explicitly supports the local frontend origin
-`http://localhost:5173`.
+The backend CORS configuration explicitly supports the local frontend origin:
 
-## Running locally
+```text
+http://localhost:5173
+```
 
-Use two terminals.
+### 5. Start the Backend
 
-### Terminal 1: backend
+Open Terminal 1.
 
-Windows:
+**Windows:**
 
 ```powershell
 cd backend
 .\.venv\Scripts\python.exe -m uvicorn main:app --reload
 ```
 
-macOS or Linux:
+**macOS / Linux:**
 
 ```bash
 cd backend
 ./.venv/bin/python -m uvicorn main:app --reload
 ```
 
-The API runs at `http://localhost:8000`.
+The API will be available at:
 
-### Terminal 2: frontend
+```text
+http://localhost:8000
+```
 
-```powershell
+Interactive API documentation:
+
+```text
+http://localhost:8000/docs
+```
+
+### 6. Start the Frontend
+
+Open Terminal 2:
+
+```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Open the Vite URL shown in the terminal, normally
-`http://localhost:5173`.
+Open the URL displayed by Vite, normally:
 
-## API overview
-
-### `GET /`
-
-Returns basic API information:
-
-```json
-{
-  "message": "Welcome to ScopeSentry API",
-  "docs": "/docs"
-}
+```text
+http://localhost:5173
 ```
 
-### `GET /health`
+ScopeSentry is now ready for local use.
 
-Returns the service health response:
+## 🔌 API Documentation
 
-```json
-{
-  "status": "ok",
-  "application": "ScopeSentry"
-}
-```
+ScopeSentry exposes the following backend endpoints.
 
-### `POST /analyze`
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/` | Returns basic API information. |
+| GET | `/health` | Checks backend health. |
+| POST | `/analyze` | Analyzes an original agreement against a new client request. |
 
-Request:
+### POST `/analyze`
+
+**Request Body:**
 
 ```json
 {
@@ -187,13 +321,9 @@ Request:
 }
 ```
 
-`hourly_rate` is optional and must be zero or greater. The two text fields must
-not be blank.
+`hourly_rate` is optional and must be zero or greater. Both text fields must contain nonblank text.
 
-The response contains `overall_summary`, `suggested_client_reply`,
-`missing_information`, and a `findings` array. Each finding contains
-`change_description`, `classification`, `supporting_evidence`, `explanation`,
-`uncertainty`, and an optional `estimated_extra_hours` object:
+**Response Structure:**
 
 ```json
 {
@@ -203,7 +333,9 @@ The response contains `overall_summary`, `suggested_client_reply`,
     {
       "change_description": "Add a customer dashboard",
       "classification": "out_of_scope",
-      "supporting_evidence": ["Please add a customer dashboard."],
+      "supporting_evidence": [
+        "Please add a customer dashboard."
+      ],
       "explanation": "The request describes a deliverable not included in the supplied agreement excerpt.",
       "uncertainty": "The agreement excerpt may not contain every project detail.",
       "estimated_extra_hours": null
@@ -213,94 +345,146 @@ The response contains `overall_summary`, `suggested_client_reply`,
 }
 ```
 
-The evidence in this example is illustrative request data; actual evidence must
-be copied exactly from the submitted text. Interactive API documentation is
-available at `http://localhost:8000/docs` while the backend is running.
+The example demonstrates the response structure. Actual findings and estimates depend on the supplied information and model output.
 
-## Tests and quality checks
+### Finding Classifications
 
-Run the backend regression suite from `backend`:
+| Classification | Meaning |
+|---|---|
+| `in_scope` | The requested change appears consistent with the supplied agreement. |
+| `out_of_scope` | The requested change appears to introduce work beyond the supplied agreement. |
+| `needs_clarification` | More information is needed before determining whether the change falls within the original scope. |
+
+## 🧪 Testing & Quality Checks
+
+ScopeSentry includes a backend regression suite designed to verify application behavior without making live Groq API requests.
+
+### Backend Tests
+
+From the `backend` directory:
+
+**Windows:**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests -q
 ```
 
-Run frontend checks from `frontend`:
+**macOS / Linux:**
 
-```powershell
+```bash
+./.venv/bin/python -m pytest tests -q
+```
+
+**Verified result:** 31 passing tests.
+
+The tests use mocked provider behavior to keep the regression suite deterministic.
+
+### Frontend Checks
+
+From the `frontend` directory:
+
+```bash
 npm run lint
 npm run build
 ```
 
-Compile the relevant backend and test files:
+### Python Compilation
+
+From the `backend` directory:
 
 ```powershell
 .\.venv\Scripts\python.exe -m py_compile analysis_service.py schemas.py main.py tests\test_backend.py
 ```
 
-Check the Git diff for whitespace errors from the repository root:
+### Git Diff Validation
 
-```powershell
+From the repository root:
+
+```bash
 git diff --check
 ```
 
-The verified local regression suite contains 31 passing tests. It uses mocked
-provider behavior and does not require live Groq requests.
+## 🔐 Privacy & Security
 
-## Limitations and responsible use
+ScopeSentry takes care to avoid exposing sensitive information through diagnostic logging and frontend configuration.
 
-- Scope classifications and effort estimates are analysis aids, not definitive
-  contractual conclusions.
-- Estimates are approximate and may be absent when the supplied text does not
-  support them.
-- Review the original agreement, client request, evidence, uncertainty, and
-  missing information before making a business decision.
-- ScopeSentry does not provide legal advice. Consult a qualified professional
-  for legal or contractual questions.
-- The model can still be wrong or incomplete. Strict evidence validation helps
-  prevent unsupported quotations but does not guarantee correct interpretation.
-- No deployment or production hosting configuration is included in this
-  repository.
+- API credentials remain in the backend environment.
+- API keys are never intended to be exposed in browser code.
+- Diagnostic output avoids logging agreement text, client requests, raw model responses, generated replies, and API keys.
+- Model-provided evidence is checked against the actual submitted text.
+- Structured inputs and outputs are validated before being processed or displayed.
 
-## Contributing
+**Important privacy consideration:** ScopeSentry uses Groq-hosted inference. The agreement text and client request submitted for analysis are sent to the configured Groq API. This is not a fully local or offline AI application. Review the provider's applicable data-handling policies before submitting confidential client information.
 
-Small, focused contributions are welcome:
+## ⚠️ Limitations & Responsible Use
 
-1. Open an issue describing the problem or proposed improvement.
-2. Keep changes scoped to the relevant frontend, backend, tests, or
-   documentation.
-3. Do not add secrets, credentials, generated build output, or local
-   environments.
+ScopeSentry is an analysis assistant, not a replacement for professional judgment.
+
+- AI classifications are suggestions, not definitive contractual conclusions.
+- An agreement excerpt may not contain the complete project scope.
+- Effort estimates are approximate and may be omitted when sufficient information is unavailable.
+- Evidence validation verifies quotations, but does not guarantee that the AI interpretation is correct.
+- Users should review explanations, uncertainty, and missing information before making decisions.
+- ScopeSentry does not provide legal advice.
+- ScopeSentry does not send client messages or provide email integration.
+- No production deployment or hosting configuration is included in this repository.
+
+Always review the original agreement and consult a qualified professional when legal or contractual interpretation is required.
+
+## 🤝 Contributing
+
+Contributions, bug reports, and suggestions are welcome!
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Make focused changes.
 4. Add or update deterministic tests for behavior changes.
-5. Run the backend tests, frontend lint/build, Python compilation, and
-   `git diff --check` before opening a pull request.
-6. Explain user-visible behavior changes and any limitations in the pull
-   request description.
+5. Run the backend regression suite and frontend lint/build checks.
+6. Run Python compilation and `git diff --check`.
+7. Submit a pull request explaining the changes and their impact.
 
-## Security
+### Contribution Guidelines
 
-Keep `GROQ_API_KEY` only in the ignored `backend/.env` file. Use the sanitized
-`.env.example` files for setup documentation. Do not include API keys, client
-agreements, client requests, raw model output, or other sensitive data in
-issues, logs, commits, or pull requests.
+- Keep changes focused and maintainable.
+- Avoid introducing unnecessary dependencies.
+- Never commit API keys, credentials, or confidential client information.
+- Preserve evidence validation and structured response behavior.
+- Document user-visible changes and known limitations.
 
-For a suspected vulnerability, avoid posting sensitive details publicly. Open
-a private security report through the repository's available GitHub security
-contact process, or contact the maintainer directly if private reporting is
-not enabled.
+## 🛡️ Security Reporting
 
-## Hacktoberfest and DEV challenge context
+If you discover a security vulnerability, avoid publishing sensitive details in a public issue.
 
-ScopeSentry was developed as an open-source project for a DEV/Hacktoberfest
-challenge context. The repository demonstrates an evidence-first workflow for
-reviewing freelance scope changes with a React interface, FastAPI service,
-structured validation, and mocked regression tests. Eligibility and submission
-requirements should be confirmed against the current DEV/Hacktoberfest rules
-before submission.
+Use the repository's available private GitHub security reporting process, or contact the maintainer directly if private reporting is not enabled.
 
-## Acknowledgements
+## 🏆 Hacktoberfest 2026
 
-- React and Vite for the frontend tooling.
-- FastAPI and Pydantic for the API and validation layer.
-- Groq for the OpenAI-compatible model API.
-- The OpenAI Python client for the provider integration.
+ScopeSentry was developed in the context of the DEV/Hacktoberfest 2026 open-source challenge.
+
+The project explores how open-source AI can solve a practical problem faced by independent professionals.
+
+Its central idea is simple:
+
+**AI should not just generate an answer. It should provide evidence that people can inspect, question, and use to make better decisions.**
+
+ScopeSentry demonstrates this through structured AI analysis, exact evidence verification, transparent uncertainty, and human-reviewed communication.
+
+## 🙏 Acknowledgements
+
+Built with the support of the following open-source technologies and services:
+
+- [React](https://react.dev/) — Frontend library.
+- [Vite](https://vite.dev/) — Frontend development tooling.
+- [FastAPI](https://fastapi.tiangolo.com/) — Python API framework.
+- [Pydantic](https://docs.pydantic.dev/) — Data validation.
+- [Groq](https://groq.com/) — AI inference provider.
+- [OpenAI Python SDK](https://github.com/openai/openai-python) — Provider integration.
+- [Pytest](https://pytest.org/) — Backend testing framework.
+
+---
+
+<p align="center">
+  <b>Built to help freelancers protect their time, clarify expectations, and work with confidence.</b>
+  <br/>
+  ⭐ If you find ScopeSentry useful, consider starring the repository!
+</p>
